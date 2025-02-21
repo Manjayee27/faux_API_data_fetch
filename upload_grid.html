@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Upload Excel and Display in ag-Grid</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+  <script src="grid_24.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/ag-grid-community/dist/styles/ag-grid.css">
+  <link rel="stylesheet" href="https://unpkg.com/ag-grid-community/dist/styles/ag-theme-alpine.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: Arial, sans-serif;
+      margin: 0;
+    }
+    .main-container {
+      background: linear-gradient(to right, #363636, #ffffff);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .content-wrapper {
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 800px;
+    }
+    .upload-btn-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+    .upload-btn {
+      background-color: #28a745;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      display: inline-block;
+      margin-right: 10px;
+    }
+    .upload-btn:hover {
+      background-color: #218838;
+    }
+    .clear-btn {
+      position: absolute;
+      right: -20px;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+    .clear-btn i {
+      font-size: 14px;
+    }
+    #myGrid {
+      height: 600px;
+      width: 100%;
+      margin-top: 20px;
+    }
+    .text-center {
+      text-align: center;
+      color: #ffffff;
+    }
+    .upload-heading {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #000000;
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <div class="content-wrapper">
+      
+      <h3 class="upload-heading"><b>Upload Excel File to Show the Tabular Data of ag-Grid</b></h3>
+      <div class="upload-btn-wrapper">
+        <input type="file" id="fileInput" class="upload-btn" accept=".xlsx, .xls">
+        <button class="clear-btn" id="clearButton"><i class="fas fa-times"></i></button>
+      </div>
+      <div id="myGrid" class="ag-theme-alpine"></div>
+    </div>
+  </div>
+
+  <script src="grid_24.js"></script>
+  <script>
+    var gridOptions = {
+      defaultColDef: {
+        sortable: true,
+        filter: true,
+      },
+      pagination: true,
+      overlayNoRowsTemplate: '<span class="ag-overlay-no-rows-center">No data yet - please choose a file.</span>', // Custom message when no rows are present
+    };
+
+    document.getElementById('fileInput').addEventListener('change', handleFileUpload, false);
+    document.getElementById('clearButton').addEventListener('click', clearFileInput, false);
+
+    function handleFileUpload(event) {
+      var fileInput = document.getElementById('fileInput');
+      var clearButton = document.getElementById('clearButton');
+      var file = event.target.files[0];
+      
+      if (file) {
+        clearButton.style.display = 'flex'; // Show the clear button
+      }
+
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var data = new Uint8Array(e.target.result);
+        var workbook = XLSX.read(data, { type: 'array' });
+        var firstSheetName = workbook.SheetNames[0];
+        var worksheet = workbook.Sheets[firstSheetName];
+        var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        populateGrid(jsonData);
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function populateGrid(data) {
+      var columnDefs = data[0].map(function(header) {
+        return { headerName: header, field: header };
+      });
+
+      var rowData = data.slice(1).map(function(row) {
+        var rowDataObject = {};
+        row.forEach(function(cell, index) {
+          rowDataObject[data[0][index]] = cell;
+        });
+        return rowDataObject;
+      });
+
+      gridOptions.api.setColumnDefs(columnDefs); // Update column definitions
+      gridOptions.api.setRowData(rowData); // Update row data
+    }
+
+    function clearFileInput() {
+      var fileInput = document.getElementById('fileInput');
+      var clearButton = document.getElementById('clearButton');
+      fileInput.value = ''; // Clear the file input value
+      clearButton.style.display = 'none'; // Hide the clear button
+      gridOptions.api.setRowData([]); // Clear the grid data
+      gridOptions.api.showNoRowsOverlay(); // Show the no data message
+    }
+
+    // Create the grid
+    var eGridDiv = document.querySelector('#myGrid');
+    new agGrid.Grid(eGridDiv, gridOptions);
+  </script>
+</body>
+</html>

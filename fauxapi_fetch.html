@@ -9,13 +9,13 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <style>
     body {
-      background-color: #f8f9fa;
+      background-color: #9cdcff;
     }
     .input-group {
       display: flex;
       align-items: center;
     }
-    .input-group .form-control-clear {
+    .form-control-clear {
       cursor: pointer;
       position: absolute;
       right: 10px;
@@ -23,10 +23,9 @@
       transform: translateY(-50%);
       z-index: 10;
       display: none;
-      align-items: center;
-      justify-content: center;
       padding: 0 0.5rem;
       font-size: 1.2rem;
+      color: #aaa;
     }
     .btn-custom {
       background-color: #28a745;
@@ -65,7 +64,6 @@
     }
     .input-container input[type="text"] {
       flex: 1;
-      position: relative;
       padding-right: 30px; /* Add some padding to make space for the clear button */
     }
     .input-container button {
@@ -151,19 +149,21 @@
       var input = document.getElementById('search').value;
       var clearButton = document.getElementById('clearButton');
       if (input.length > 0) {
-        clearButton.style.display = 'flex';
+        clearButton.style.display = 'block';
       } else {
         clearButton.style.display = 'none';
       }
       checkNoRows();
     }
 
-    // function to handle Enter and ESC key press for search and clear
+    // function to handle Enter, ESC, and Shift key press for search, clear, and focus
     function handleKeyPress(event) {
       if (event.key === 'Enter') {
         searchAllColumns();
       } else if (event.key === 'Escape') {
         clearSearch();
+      } else if (event.key === 'Shift') {
+        moveCursorToSearch();
       }
     }
 
@@ -216,6 +216,18 @@
         XLSX.writeFile(workbook, "Filtered_Employee_Details.xlsx");
       }
     }
+
+    // function to move cursor to search field when F1 or Shift is pressed
+    function moveCursorToSearch() {
+      document.getElementById('search').focus();
+    }
+
+    // Add event listener to detect Shift key press
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Shift') {
+        moveCursorToSearch();
+      }
+    });
   </script>
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
